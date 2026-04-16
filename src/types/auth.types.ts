@@ -13,6 +13,12 @@ export type AuthUser = {
   organizationId?: string | null;
 };
 
+export type CurrentUserResponse = {
+  success: true;
+  message: string;
+  data: AuthUser;
+};
+
 export type LoginPayload = {
   email: string;
   password: string;
