@@ -18,11 +18,6 @@ export async function register(payload: RegisterPayload) {
   return res.data;
 }
 
-export async function logout() {
-  const res = await apiClient.post(ENDPOINTS.AUTH.LOGOUT);
-  return res.data;
-}
-
 export async function getCurrentUser(): Promise<CurrentUserResponse> {
   const res = await apiClient.get(ENDPOINTS.AUTH.ME);
   return res.data;
@@ -34,5 +29,10 @@ export async function forgotPassword(payload: ForgotPasswordPayload) {
 
 export async function resetPassword(payload: ResetPasswordPayload) {
   const res = await apiClient.post(ENDPOINTS.AUTH.RESET_PASSWORD, payload);
+  return res.data;
+}
+
+export async function logout() {
+  const res = await apiClient.post(ENDPOINTS.AUTH.LOGOUT);
   return res.data;
 }

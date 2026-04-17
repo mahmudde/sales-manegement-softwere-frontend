@@ -1,5 +1,10 @@
 "use client";
 
+import { logout } from "@/modules/auth/auth.api";
+import { useQueryClient } from "@tanstack/react-query";
+import { authKeys } from "@/modules/auth/auth.keys";
+import { toast } from "sonner";
+
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { CreditCard, Rocket, ArrowLeft, CheckCircle2 } from "lucide-react";
@@ -8,6 +13,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function BillingPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.warn("Logout API failed");
+    } finally {
+      await queryClient.removeQueries({
+        queryKey: authKeys.me,
+      });
+
+      toast.success("Logged out");
+      router.replace("/login");
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#FDFCFE] dark:bg-[#020617] px-6 py-12">
@@ -67,7 +88,7 @@ export default function BillingPage() {
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 variant="outline"
-                onClick={() => router.push("/login")}
+                onClick={handleLogout}
                 className="flex-1 h-12 border-slate-200 font-bold gap-2"
               >
                 <ArrowLeft className="h-4 w-4" />
