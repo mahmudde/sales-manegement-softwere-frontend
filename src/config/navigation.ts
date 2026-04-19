@@ -9,7 +9,7 @@ import {
   BadgeDollarSign,
   CreditCard,
   Settings,
-  LucideIcon,
+  type LucideIcon,
 } from "lucide-react";
 import type { UserRole } from "@/types/auth.types";
 
@@ -17,7 +17,7 @@ export type NavItem = {
   label: string;
   href: string;
   roles: UserRole[];
-  icon: LucideIcon; // Added this field
+  icon: LucideIcon; // Added icon type
 };
 
 export const tenantNavigation: NavItem[] = [

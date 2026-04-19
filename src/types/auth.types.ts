@@ -5,39 +5,79 @@ export type UserRole =
   | "STAFF"
   | "PLATFORM_SUPER_ADMIN";
 
-export type AuthUser = {
+export type UserStatus = "ACTIVE" | "INACTIVE" | "BLOCKED";
+
+export interface OrganizationInfo {
+  id: string;
+  name: string;
+  slug: string;
+  email: string | null;
+  phone: string | null;
+}
+
+export interface OrganizationMember {
+  id: string;
+  userId: string;
+  organizationId: string;
+  role: UserRole;
+  isActive: boolean;
+  joinedAt: string;
+  createdAt: string;
+  updatedAt: string;
+  organization: OrganizationInfo;
+}
+
+export interface ShopAssignment {
+  id: string;
+  userId: string;
+  shopId: string;
+  role: string;
+  // Add other shop-specific fields if they exist in your DB
+}
+
+export interface AuthUser {
   id: string;
   name: string;
   email: string;
-  role: UserRole;
-  organizationId?: string | null;
-};
+  emailVerified: boolean;
+  image: string | null;
+  phone: string | null;
+  status: UserStatus;
+  platformRole: string | null;
+  organizationMembers: OrganizationMember[];
+  shopAssignments: ShopAssignment[]; // Strictly typed array
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  isDeleted: boolean;
+}
 
-export type CurrentUserResponse = {
-  success: true;
+export interface CurrentUserResponse {
+  success: boolean;
   message: string;
   data: AuthUser;
-};
+}
 
-export type LoginPayload = {
+// --- Payloads ---
+export interface LoginPayload {
   email: string;
   password: string;
-};
+}
 
-export type RegisterPayload = {
+export interface RegisterPayload {
   organizationName: string;
   name: string;
   email: string;
   password: string;
   phone: string;
-};
+}
 
-export type ForgotPasswordPayload = {
+export interface ForgotPasswordPayload {
   email: string;
-};
+}
 
-export type ResetPasswordPayload = {
+export interface ResetPasswordPayload {
   email: string;
   otp: string;
   newPassword: string;
-};
+}
