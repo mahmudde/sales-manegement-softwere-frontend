@@ -1,125 +1,95 @@
 "use client";
 
-import { useState } from "react";
-import {
-  Plus,
-  Tag,
-  Layers,
-  CheckCircle2,
-  Loader2,
-  AlertCircle,
-} from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Search, Loader2 } from "lucide-react";
 
 import { useCategories } from "@/hooks/use-categories";
+import type { Category } from "@/modules/categories/categories.types";
+
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import CategoriesTable from "@/components/categories/categories-table";
 import CreateCategoryModal from "@/components/categories/create-category-modal";
-import CategoriesTable from "@/components/categories/categories-table"; // Assuming this exists or will be built next
-import { cn } from "@/lib/utils";
-import { Category } from "@/modules/categories/categories.types";
 
 export default function CategoriesPage() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [createOpen, setCreateOpen] = useState(false);
 
-  const { data, isLoading, isError, refetch } = useCategories({
+  // 1. Debounce Search: Prevents excessive API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 400); // 400ms delay
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const { data, isLoading, isError } = useCategories({
     page: 1,
-    limit: 50,
+    limit: 20,
+    searchTerm: debouncedSearch,
   });
 
-  const categories = data?.data ?? [];
-  const activeCategories = categories.filter(
-    (c: Category) => c.status === "ACTIVE",
-  ).length;
+  // Strict typing for categories array
+  const categories: Category[] = data?.data ?? [];
 
   return (
-    <div className="space-y-8 pb-10">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+    <div className="space-y-6 max-w-[1200px] mx-auto p-4 md:p-8">
+      {/* Header Section */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-            Categories
-          </h1>
-          <p className="text-slate-500 font-medium mt-1">
-            Organize your products into logical groups for better filtering.
+          <h1 className="text-3xl font-bold tracking-tight">Categories</h1>
+          <p className="text-muted-foreground mt-1">
+            Organize and manage your product catalog hierarchy.
           </p>
         </div>
 
         <Button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-violet-600 hover:bg-violet-700 text-white rounded-2xl px-6 py-6 h-auto shadow-xl shadow-violet-200 dark:shadow-none transition-all active:scale-95 flex items-center gap-2"
+          onClick={() => setCreateOpen(true)}
+          className="rounded-xl shadow-sm bg-violet-600 hover:bg-violet-700 transition-all flex items-center gap-2"
         >
-          <Plus className="h-5 w-5" />
-          <span className="font-bold text-base">New Category</span>
+          <Plus className="h-4 w-4" /> Add Category
         </Button>
       </div>
 
-      {/* Stats Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="border-none shadow-sm rounded-3xl bg-white dark:bg-slate-900/50">
-          <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 rounded-2xl bg-violet-50 dark:bg-violet-500/10 text-violet-600">
-              <Layers className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-[11px] font-black uppercase text-slate-400 tracking-wider">
-                Total Groups
-              </p>
-              <h4 className="text-2xl font-black text-slate-900 dark:text-white">
-                {categories.length}
-              </h4>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-sm rounded-3xl bg-white dark:bg-slate-900/50">
-          <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600">
-              <CheckCircle2 className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-[11px] font-black uppercase text-slate-400 tracking-wider">
-                Active Status
-              </p>
-              <h4 className="text-2xl font-black text-slate-900 dark:text-white">
-                {activeCategories}
-              </h4>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Filter/Search Section */}
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search categories by name..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10 rounded-xl focus-visible:ring-violet-500"
+        />
       </div>
 
       {/* Main Content Area */}
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center min-h-[300px] rounded-[2rem] border-2 border-slate-50 dark:border-slate-900 bg-white dark:bg-slate-950">
-          <Loader2 className="h-10 w-10 text-violet-600 animate-spin mb-4" />
-          <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
-            Fetching Categories
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed bg-muted/20 p-20">
+          <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
+          <p className="mt-4 text-sm font-medium text-muted-foreground">
+            Fetching categories...
           </p>
         </div>
       ) : isError ? (
-        <div className="flex flex-col items-center justify-center min-h-[300px] rounded-[2rem] border-2 border-rose-100 bg-rose-50/20 text-rose-600 p-8 text-center">
-          <AlertCircle className="h-8 w-8 mb-4 opacity-50" />
-          <h3 className="font-black text-xl">Sync Failed</h3>
-          <Button
-            variant="ghost"
-            className="mt-4 font-bold text-rose-600 hover:bg-rose-100 rounded-xl"
-            onClick={() => refetch()}
-          >
-            Try Again
-          </Button>
+        <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-8 text-center">
+          <p className="text-sm font-semibold text-destructive">
+            Failed to load categories. Please check your connection.
+          </p>
         </div>
       ) : (
-        <div className="animate-in fade-in duration-700">
-          {/* If you haven't built CategoriesTable yet, you can map categories here */}
-          <CategoriesTable categories={categories} />
-        </div>
+        <CategoriesTable categories={categories} />
       )}
 
       {/* Create Modal */}
       <CreateCategoryModal
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        onCreated={() => refetch()} // Refresh list after creation
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreated={() => {
+          // The mutation onSuccess in the hook handles invalidation,
+          // so we just close the modal.
+          setCreateOpen(false);
+        }}
       />
     </div>
   );

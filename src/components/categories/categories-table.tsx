@@ -1,147 +1,170 @@
 "use client";
 
-import {
-  MoreHorizontal,
-  Edit2,
-  Trash2,
-  Calendar,
-  Tag as TagIcon,
-} from "lucide-react";
-import { format } from "date-fns";
+import { useState } from "react";
+import { toast } from "sonner";
+import { MoreHorizontal, Edit, Trash2, Loader2 } from "lucide-react";
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import type { Category } from "@/modules/categories/categories.types";
+import { useDeleteCategory } from "@/hooks/use-categories";
+import { cn } from "@/lib/utils";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { Category } from "@/modules/categories/categories.types";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
+import EditCategoryModal from "@/components/categories/edit-category-modal";
 
-interface CategoriesTableProps {
+type CategoriesTableProps = {
   categories: Category[];
-}
+};
 
 export default function CategoriesTable({ categories }: CategoriesTableProps) {
-  return (
-    <div className="rounded-[2rem] border-none bg-white dark:bg-slate-950 shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden">
-      <Table>
-        <TableHeader className="bg-slate-50/50 dark:bg-slate-900/50">
-          <TableRow className="hover:bg-transparent border-slate-100 dark:border-slate-800">
-            <TableHead className="w-[400px] font-black uppercase text-[10px] tracking-[0.2em] text-slate-400 pl-8">
-              Category Identity
-            </TableHead>
-            <TableHead className="font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">
-              Visibility
-            </TableHead>
-            <TableHead className="font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">
-              Created Date
-            </TableHead>
-            <TableHead className="w-[100px] text-right pr-8"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {categories.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={4} className="h-40 text-center">
-                <div className="flex flex-col items-center justify-center text-slate-400">
-                  <TagIcon className="h-8 w-8 mb-2 opacity-20" />
-                  <p className="font-bold">No categories found</p>
-                </div>
-              </TableCell>
-            </TableRow>
-          ) : (
-            categories.map((category) => (
-              <TableRow
-                key={category.id}
-                className="group border-slate-50 dark:border-slate-900 hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition-colors"
-              >
-                {/* Name & Icon */}
-                <TableCell className="pl-8 py-5">
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-xl bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center text-violet-600 group-hover:scale-110 transition-transform">
-                      <TagIcon className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="font-black text-slate-900 dark:text-white">
-                        {category.name}
-                      </p>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-                        ID: {category.id.slice(0, 8)}...
-                      </p>
-                    </div>
-                  </div>
-                </TableCell>
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
 
-                {/* Status Badge */}
-                <TableCell>
+  const deleteCategoryMutation = useDeleteCategory();
+
+  const handleDelete = async (categoryId: string) => {
+    if (!window.confirm("Are you sure you want to delete this category?"))
+      return;
+
+    try {
+      await deleteCategoryMutation.mutateAsync(categoryId);
+      toast.success("Category deleted successfully");
+    } catch (error: unknown) {
+      // Type-safe error handling
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to delete category";
+      toast.error(errorMessage);
+    }
+  };
+
+  if (categories.length === 0) {
+    return (
+      <div className="rounded-xl border bg-background p-12 text-center text-sm text-muted-foreground">
+        No categories found.
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="overflow-hidden rounded-xl border bg-background shadow-sm">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b bg-muted/30 transition-colors">
+              <th className="h-12 px-4 text-left align-middle font-semibold text-muted-foreground">
+                Name
+              </th>
+              <th className="h-12 px-4 text-center align-middle font-semibold text-muted-foreground">
+                Status
+              </th>
+              <th className="h-12 px-4 text-left align-middle font-semibold text-muted-foreground">
+                Created At
+              </th>
+              <th className="h-12 px-4 text-right align-middle font-semibold text-muted-foreground">
+                Actions
+              </th>
+            </tr>
+          </thead>
+
+          <tbody className="divide-y">
+            {categories.map((category) => (
+              <tr
+                key={category.id}
+                className="group hover:bg-muted/50 transition-colors"
+              >
+                <td className="px-4 py-4 font-medium text-foreground">
+                  {category.name}
+                </td>
+
+                <td className="px-4 py-4 text-center">
                   <Badge
+                    variant="outline"
                     className={cn(
-                      "rounded-lg px-2 py-0.5 text-[10px] font-black border-none shadow-none",
+                      "rounded-full px-3 py-0.5 border-none",
                       category.status === "ACTIVE"
-                        ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10"
-                        : "bg-slate-100 text-slate-500 dark:bg-slate-800",
+                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
+                        : "bg-slate-100 text-slate-600 dark:bg-slate-500/10 dark:text-slate-400",
                     )}
                   >
-                    {category.status}
+                    {category.status || "INACTIVE"}
                   </Badge>
-                </TableCell>
+                </td>
 
-                {/* Date */}
-                <TableCell>
-                  <div className="flex items-center gap-2 text-slate-500 font-medium text-sm">
-                    <Calendar className="h-3.5 w-3.5 opacity-40" />
-                    {category.createdAt
-                      ? format(new Date(category.createdAt), "MMM dd, yyyy")
-                      : "No date"}
-                  </div>
-                </TableCell>
+                <td className="px-4 py-4 text-muted-foreground">
+                  {category.createdAt
+                    ? new Date(category.createdAt).toLocaleDateString()
+                    : "-"}
+                </td>
 
-                {/* Actions */}
-                <TableCell className="text-right pr-8">
+                <td className="px-4 py-4 text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="ghost"
-                        className="h-8 w-8 p-0 rounded-lg hover:bg-white dark:hover:bg-slate-800 shadow-sm"
+                        className="h-8 w-8 p-0 hover:bg-violet-50 hover:text-violet-600"
+                        disabled={deleteCategoryMutation.isPending}
                       >
-                        <MoreHorizontal className="h-4 w-4 text-slate-400" />
+                        {deleteCategoryMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <MoreHorizontal className="h-4 w-4" />
+                        )}
                       </Button>
                     </DropdownMenuTrigger>
+
                     <DropdownMenuContent
                       align="end"
-                      className="rounded-xl border-slate-100 dark:border-slate-800 shadow-xl"
+                      className="w-44 rounded-xl shadow-xl"
                     >
-                      <DropdownMenuItem className="gap-2 font-bold text-xs cursor-pointer rounded-lg">
-                        <Edit2 className="h-3.5 w-3.5" />
-                        Edit Details
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+
+                      <DropdownMenuItem
+                        className="flex items-center gap-2 cursor-pointer"
+                        onClick={() => {
+                          setEditingCategory(category);
+                          setEditOpen(true);
+                        }}
+                      >
+                        <Edit className="h-4 w-4" /> Edit Details
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="gap-2 font-bold text-xs cursor-pointer rounded-lg text-rose-500 focus:text-rose-500 focus:bg-rose-50">
-                        <Trash2 className="h-3.5 w-3.5" />
-                        Delete Group
+
+                      <DropdownMenuSeparator />
+
+                      <DropdownMenuItem
+                        className="flex items-center gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer"
+                        onClick={() => handleDelete(category.id)}
+                        disabled={deleteCategoryMutation.isPending}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        {deleteCategoryMutation.isPending
+                          ? "Deleting..."
+                          : "Delete Category"}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </div>
-  );
-}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-// Helper function for conditional classes if not already imported
-export function cn(...inputs: (string | boolean | undefined | null)[]) {
-  return inputs.filter(Boolean).join(" ");
+      <EditCategoryModal
+        category={editingCategory}
+        open={editOpen}
+        onOpenChange={(open) => {
+          setEditOpen(open);
+          if (!open) setEditingCategory(null);
+        }}
+      />
+    </>
+  );
 }
