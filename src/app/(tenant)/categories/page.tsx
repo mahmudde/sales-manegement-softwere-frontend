@@ -1,22 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Plus, Search, Loader2 } from "lucide-react";
-
-import { useCategories } from "@/hooks/use-categories";
-import type { Category } from "@/modules/categories/categories.types";
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import CategoriesTable from "@/components/categories/categories-table";
 import CreateCategoryModal from "@/components/categories/create-category-modal";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useCategories } from "@/hooks/use-categories";
+import { Category } from "@/modules/categories/categories.types";
+import { Loader2, Plus, Search } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function CategoriesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
 
-  // 1. Debounce Search: Prevents excessive API calls
+  // 1. Debounce Search:
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm);
@@ -30,7 +28,6 @@ export default function CategoriesPage() {
     searchTerm: debouncedSearch,
   });
 
-  // Strict typing for categories array
   const categories: Category[] = data?.data ?? [];
 
   return (
@@ -86,8 +83,6 @@ export default function CategoriesPage() {
         open={createOpen}
         onOpenChange={setCreateOpen}
         onCreated={() => {
-          // The mutation onSuccess in the hook handles invalidation,
-          // so we just close the modal.
           setCreateOpen(false);
         }}
       />
