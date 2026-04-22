@@ -82,14 +82,6 @@ export type CancelSalePayload = {
   note?: string;
 };
 
-export type SalePayment = {
-  id: string;
-  amount: number;
-  paymentMethod: SalePaymentMethod;
-  note?: string;
-  createdAt: string;
-};
-
 export type SaleReturn = {
   id: string;
   saleId: string;
@@ -98,4 +90,18 @@ export type SaleReturn = {
     quantity: number;
   }[];
   createdAt: string;
+};
+
+export type SalePayment = {
+  id: string;
+  amount: number;
+  paymentMethod: SalePaymentMethod;
+  note?: string;
+  createdAt?: string;
+};
+
+export type SalePaymentsResponse = {
+  success: true;
+  message: string;
+  data: SalePayment[];
 };
