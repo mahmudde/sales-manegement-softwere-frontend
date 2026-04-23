@@ -2,12 +2,12 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { toast } from "sonner";
 import { Warehouse, MapPin, ToggleLeft, Loader2 } from "lucide-react";
 
 import {
   createStorageSchema,
+  type CreateStorageSchemaInput,
   type CreateStorageSchemaValues,
 } from "@/modules/storages/storages.schema";
 import { parseApiError } from "@/lib/error-parser";
@@ -34,11 +34,7 @@ export default function StorageForm({
     setValue,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<
-    z.input<typeof createStorageSchema>,
-    unknown,
-    CreateStorageSchemaValues
-  >({
+  } = useForm<CreateStorageSchemaInput, unknown, CreateStorageSchemaValues>({
     resolver: zodResolver(createStorageSchema),
     defaultValues: {
       name: defaultValues?.name || "",
@@ -64,7 +60,7 @@ export default function StorageForm({
           err.path === "shopId" ||
           err.path === "status"
         ) {
-          setError(err.path as keyof z.input<typeof createStorageSchema>, {
+          setError(err.path as keyof CreateStorageSchemaInput, {
             message: err.message,
           });
         }
@@ -93,6 +89,27 @@ export default function StorageForm({
         {errors.name && (
           <p className="px-1 text-sm font-medium text-red-500">
             {errors.name.message}
+          </p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 px-1">
+          <MapPin className="h-4 w-4 text-violet-500" />
+          <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            Address
+          </label>
+        </div>
+
+        <Input
+          placeholder="Enter address"
+          {...register("address")}
+          className="h-12 rounded-2xl bg-slate-50 font-medium shadow-sm focus-visible:border-violet-500 focus-visible:ring-violet-500/20"
+        />
+
+        {errors.address && (
+          <p className="px-1 text-sm font-medium text-red-500">
+            {errors.address.message}
           </p>
         )}
       </div>

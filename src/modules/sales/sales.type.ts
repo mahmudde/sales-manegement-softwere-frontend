@@ -24,6 +24,11 @@ export type SaleItem = {
   quantity: number;
   unitPrice?: number;
   subtotal?: number;
+  totalPrice?: number;
+  product?: {
+    id: string;
+    name?: string;
+  };
 };
 
 export type Sale = {

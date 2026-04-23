@@ -7,4 +7,5 @@ export const createStorageSchema = z.object({
   status: z.enum(["ACTIVE", "INACTIVE"]).default("ACTIVE"),
 });
 
-export type CreateStorageSchemaValues = z.infer<typeof createStorageSchema>;
+export type CreateStorageSchemaInput = z.input<typeof createStorageSchema>;
+export type CreateStorageSchemaValues = z.output<typeof createStorageSchema>;

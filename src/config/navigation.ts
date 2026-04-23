@@ -9,15 +9,17 @@ import {
   BadgeDollarSign,
   CreditCard,
   Settings,
+  ArrowLeftRight,
   type LucideIcon,
 } from "lucide-react";
+
 import type { UserRole } from "@/types/auth.types";
 
 export type NavItem = {
   label: string;
   href: string;
   roles: UserRole[];
-  icon: LucideIcon; // Added icon type
+  icon: LucideIcon;
 };
 
 export const tenantNavigation: NavItem[] = [
@@ -63,6 +65,14 @@ export const tenantNavigation: NavItem[] = [
     roles: ["ORG_SUPER_ADMIN", "ORG_ADMIN", "SHOP_ADMIN", "STAFF"],
     icon: ClipboardList,
   },
+
+  {
+    label: "Inventory Transactions",
+    href: "/inventory/transactions",
+    roles: ["ORG_SUPER_ADMIN", "ORG_ADMIN", "SHOP_ADMIN", "STAFF"],
+    icon: ArrowLeftRight,
+  },
+
   {
     label: "Sales",
     href: "/sales",

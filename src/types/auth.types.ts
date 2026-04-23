@@ -32,7 +32,6 @@ export interface ShopAssignment {
   userId: string;
   shopId: string;
   role: string;
-  // Add other shop-specific fields if they exist in your DB
 }
 
 export interface AuthUser {
@@ -45,7 +44,7 @@ export interface AuthUser {
   status: UserStatus;
   platformRole: string | null;
   organizationMembers: OrganizationMember[];
-  shopAssignments: ShopAssignment[]; // Strictly typed array
+  shopAssignments: ShopAssignment[];
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
@@ -58,7 +57,6 @@ export interface CurrentUserResponse {
   data: AuthUser;
 }
 
-// --- Payloads ---
 export interface LoginPayload {
   email: string;
   password: string;
