@@ -28,3 +28,29 @@ export type LowStockItem = {
   shopName?: string;
   storageName?: string;
 };
+
+export type DashboardItem = {
+  id: string;
+  name?: string;
+  productName?: string;
+
+  product?: {
+    name?: string;
+  };
+
+  shop?: {
+    name?: string;
+  };
+
+  storage?: {
+    name?: string;
+  };
+
+  shopName?: string;
+  storageName?: string;
+
+  quantity?: number;
+  stock?: number;
+  availableQuantity?: number;
+  totalSold?: number;
+};

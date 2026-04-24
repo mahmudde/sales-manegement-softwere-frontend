@@ -1,17 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import {
-  BadgeDollarSign,
-  ShoppingCart,
-  Wallet,
-  Package,
-  TrendingUp,
-  AlertTriangle,
+  LayoutDashboard,
   ArrowRight,
-  RefreshCw,
-  Users,
-  Store,
+  Loader2,
+  Package,
+  AlertTriangle,
 } from "lucide-react";
 
 import {
@@ -22,283 +18,466 @@ import {
 } from "@/hooks/use-dashboard";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
-// Import your formatters
-
 import StatCard from "@/components/charts/stat-card";
 import SalesAnalyticsChart from "@/components/charts/sales-analytics-chart";
 import SimpleListCard from "@/components/common/simple-list-card";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
-import {
-  DashboardOverview,
-  LowStockItem,
-  TopProductItem,
-  SalesAnalyticsItem,
-} from "@/types/dashboard.types";
-import { formatCurrency, formatNumber } from "@/lib/format";
+
+type DashboardRole =
+  | "ORG_SUPER_ADMIN"
+  | "ORG_ADMIN"
+  | "SHOP_ADMIN"
+  | "STAFF"
+  | "PLATFORM_SUPER_ADMIN";
+
+type QuickAction = {
+  title: string;
+  description: string;
+  href: string;
+};
+
+type DashboardItem = {
+  id: string;
+  name?: string;
+  productName?: string;
+  shopName?: string;
+  storageName?: string;
+  quantity?: number;
+  stock?: number;
+  availableQuantity?: number;
+  totalSold?: number;
+  product?: {
+    name?: string;
+  };
+  shop?: {
+    name?: string;
+  };
+  storage?: {
+    name?: string;
+  };
+};
+
+const platformActions: QuickAction[] = [
+  {
+    title: "Platform Dashboard",
+    description: "View full system overview and platform metrics.",
+    href: "/platform/dashboard",
+  },
+  {
+    title: "Organizations",
+    description: "Manage organizations across the whole system.",
+    href: "/platform/organizations",
+  },
+];
+
+const adminActions: QuickAction[] = [
+  {
+    title: "Manage Staff",
+    description: "Create users, assign roles, and control staff access.",
+    href: "/staff",
+  },
+  {
+    title: "Manage Shops",
+    description: "Add and update organization shops.",
+    href: "/shops",
+  },
+  {
+    title: "Manage Storages",
+    description: "Control stock locations and shop-wise storage.",
+    href: "/storages",
+  },
+  {
+    title: "Stock Management",
+    description: "Perform stock in/out and monitor inventory.",
+    href: "/inventory",
+  },
+  {
+    title: "Billing",
+    description: "Manage subscription plan and Stripe payments.",
+    href: "/billing",
+  },
+  {
+    title: "Create Sale",
+    description: "Create a new sales transaction.",
+    href: "/sales/create",
+  },
+];
+
+const shopAdminActions: QuickAction[] = [
+  {
+    title: "Create Sale",
+    description: "Process customer sales transactions.",
+    href: "/sales/create",
+  },
+  {
+    title: "View Sales",
+    description: "Track shop sales and payments.",
+    href: "/sales",
+  },
+  {
+    title: "Inventory",
+    description: "Monitor product stock availability.",
+    href: "/inventory",
+  },
+  {
+    title: "Products",
+    description: "View and manage product catalog.",
+    href: "/products",
+  },
+];
+
+const staffActions: QuickAction[] = [
+  {
+    title: "Create Sale",
+    description: "Process a new sale quickly.",
+    href: "/sales/create",
+  },
+  {
+    title: "View Products",
+    description: "Check product catalog and pricing.",
+    href: "/products",
+  },
+  {
+    title: "View Inventory",
+    description: "Check available stock.",
+    href: "/inventory",
+  },
+];
+
+function getRole(
+  userData: ReturnType<typeof useCurrentUser>["data"],
+): DashboardRole | undefined {
+  const user = userData?.data;
+
+  return (user?.role ||
+    user?.platformRole ||
+    user?.organizationMembers?.[0]?.role) as DashboardRole | undefined;
+}
+
+function getActionsByRole(role?: DashboardRole): QuickAction[] {
+  if (role === "PLATFORM_SUPER_ADMIN") {
+    return platformActions;
+  }
+
+  if (role === "ORG_SUPER_ADMIN" || role === "ORG_ADMIN") {
+    return adminActions;
+  }
+
+  if (role === "SHOP_ADMIN") {
+    return shopAdminActions;
+  }
+
+  return staffActions;
+}
+
+function getDashboardSubtitle(role?: DashboardRole) {
+  if (role === "PLATFORM_SUPER_ADMIN") {
+    return "Platform super admin overview with access to system-wide organizations and platform controls.";
+  }
+
+  if (role === "ORG_SUPER_ADMIN") {
+    return "Organization owner overview with access to staff, billing, shops, inventory, products, and sales.";
+  }
+
+  if (role === "ORG_ADMIN") {
+    return "Organization admin overview for managing business operations and team resources.";
+  }
+
+  if (role === "SHOP_ADMIN") {
+    return "Shop-focused overview for sales, product visibility, and inventory monitoring.";
+  }
+
+  return "Staff overview for sales and operational tasks.";
+}
+
+function getProductName(item: DashboardItem) {
+  return item.product?.name || item.productName || item.name || "Unknown";
+}
+
+function getItemLocation(item: DashboardItem) {
+  return (
+    item.shop?.name ||
+    item.shopName ||
+    item.storage?.name ||
+    item.storageName ||
+    "Inventory item"
+  );
+}
+
+function getStockQuantity(item: DashboardItem) {
+  return item.quantity ?? item.stock ?? item.availableQuantity ?? 0;
+}
+
+function getSoldQuantity(item: DashboardItem) {
+  return item.totalSold ?? item.quantity ?? 0;
+}
 
 export default function DashboardPage() {
   const [period, setPeriod] = useState<"daily" | "monthly">("daily");
-  const { data: userData } = useCurrentUser();
 
-  const {
-    data: overviewData,
-    isLoading: overviewLoading,
-    isFetching: overviewFetching,
-  } = useDashboardOverview({
-    refetchInterval: 1000 * 60,
-  });
+  const { data: userData } = useCurrentUser();
+  const role = getRole(userData);
+  const isPlatformAdmin = role === "PLATFORM_SUPER_ADMIN";
+
+  const { data: overviewData, isLoading: overviewLoading } =
+    useDashboardOverview();
 
   const { data: analyticsData, isLoading: analyticsLoading } =
     useSalesAnalytics(period);
+
   const { data: topProductsData, isLoading: topProductsLoading } =
     useTopProducts();
+
   const { data: lowStockData, isLoading: lowStockLoading } = useLowStock();
 
-  const overview: DashboardOverview = overviewData?.data ?? {};
-  const analytics: SalesAnalyticsItem[] = analyticsData?.data ?? [];
-  const topProducts: TopProductItem[] = topProductsData?.data ?? [];
-  const lowStock: LowStockItem[] = lowStockData?.data ?? [];
+  const overview = overviewData?.data ?? {};
+  const analytics = Array.isArray(analyticsData?.data)
+    ? analyticsData.data
+    : [];
+
+  const topProducts: DashboardItem[] = Array.isArray(topProductsData?.data)
+    ? topProductsData.data
+    : [];
+
+  const lowStock: DashboardItem[] = Array.isArray(lowStockData?.data)
+    ? lowStockData.data
+    : [];
+
+  const quickActions = getActionsByRole(role);
+  const userName = userData?.data?.name || "there";
 
   return (
-    <div className="space-y-10">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-slate-50">
-              Nexus <span className="text-violet-600">Sales</span>
+    <div className="space-y-8 p-4 md:p-6">
+      <div className="rounded-3xl border border-violet-100 bg-white p-6 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-50">
+            <LayoutDashboard className="h-5 w-5 text-violet-600" />
+          </div>
+
+          <div>
+            <h1 className="text-2xl font-black tracking-tight text-slate-800">
+              Welcome back, {userName}
             </h1>
-            <div
-              className={cn(
-                "flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 transition-opacity duration-500",
-                overviewFetching && !overviewLoading
-                  ? "opacity-100"
-                  : "opacity-0",
-              )}
-            >
-              <RefreshCw className="h-3 w-3 text-emerald-600 animate-spin" />
-              <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">
-                Live Sync
-              </span>
-            </div>
-          </div>
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">
-            Welcome back, {userData?.data.name}. Here is what&apos;s happening
-            today.
-          </p>
-        </div>
-        <Button className="bg-violet-600 hover:bg-violet-700 text-white font-bold shadow-lg transition-all active:scale-95 group">
-          <TrendingUp className="mr-2 h-4 w-4 group-hover:translate-y-[-1px] transition-transform" />
-          Analytics Report
-        </Button>
-      </div>
-
-      {/* Financial Stats Grid */}
-      <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          title="Total Revenue"
-          value={
-            overviewLoading ? "..." : formatCurrency(overview.totalRevenue ?? 0)
-          }
-          icon={<BadgeDollarSign className="h-5 w-5" />}
-          description="Gross earnings (BDT)"
-        />
-        <StatCard
-          title="Outstanding Due"
-          value={
-            overviewLoading ? "..." : formatCurrency(overview.totalDue ?? 0)
-          }
-          icon={<Wallet className="h-5 w-5" />}
-          className="border-l-4 border-l-rose-500"
-          description="Pending collection"
-        />
-        <StatCard
-          title="Total Sales"
-          value={
-            overviewLoading ? "..." : formatNumber(overview.totalSales ?? 0)
-          }
-          icon={<ShoppingCart className="h-5 w-5" />}
-          description="Successful orders"
-        />
-        <StatCard
-          title="Active Products"
-          value={
-            overviewLoading ? "..." : formatNumber(overview.totalProducts ?? 0)
-          }
-          icon={<Package className="h-5 w-5" />}
-          description="Items in catalog"
-        />
-      </div>
-
-      {/* Secondary Stats Grid (Customers/Shops/Staff) */}
-      <div className="grid gap-6 sm:grid-cols-3">
-        <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-500/10 text-blue-600">
-            <Users className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="text-[10px] font-bold uppercase text-slate-400">
-              Total Customers
-            </p>
-            <p className="text-xl font-black">
-              {overviewLoading
-                ? "..."
-                : formatNumber(overview.totalCustomers ?? 0)}
-            </p>
-          </div>
-        </div>
-        <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-orange-100 dark:bg-orange-500/10 text-orange-600">
-            <Store className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="text-[10px] font-bold uppercase text-slate-400">
-              Shop Outlets
-            </p>
-            <p className="text-xl font-black">
-              {overviewLoading ? "..." : formatNumber(overview.totalShops ?? 0)}
-            </p>
-          </div>
-        </div>
-        <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-violet-100 dark:bg-violet-500/10 text-violet-600">
-            <Users className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="text-[10px] font-bold uppercase text-slate-400">
-              Active Staff
-            </p>
-            <p className="text-xl font-black">
-              {overviewLoading ? "..." : formatNumber(overview.totalStaff ?? 0)}
+            <p className="mt-1 text-sm text-muted-foreground">
+              {getDashboardSubtitle(role)}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="grid gap-8 xl:grid-cols-3">
-        <div className="xl:col-span-2">
-          <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8 shadow-sm">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-              <h2 className="text-xl font-bold tracking-tight">
-                Sales Analytics
+      {isPlatformAdmin ? (
+        <section className="space-y-4">
+          <div className="rounded-2xl border border-muted/60 bg-white p-5 shadow-sm">
+            <h2 className="text-lg font-black text-slate-800">
+              Platform Quick Actions
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              You are signed in as the system-wide platform super admin.
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {quickActions.map((action) => (
+              <Link
+                key={action.href}
+                href={action.href}
+                className="group rounded-2xl border border-violet-100 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-violet-200 hover:shadow-md"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="font-black text-slate-800">
+                      {action.title}
+                    </h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {action.description}
+                    </p>
+                  </div>
+
+                  <ArrowRight className="h-4 w-4 text-violet-500 transition-transform group-hover:translate-x-1" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : (
+        <>
+          <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <StatCard
+              title="Total Sales"
+              value={
+                overviewLoading ? "Loading..." : (overview.totalSales ?? 0)
+              }
+            />
+            <StatCard
+              title="Total Revenue"
+              value={
+                overviewLoading ? "Loading..." : (overview.totalRevenue ?? 0)
+              }
+            />
+            <StatCard
+              title="Total Due"
+              value={overviewLoading ? "Loading..." : (overview.totalDue ?? 0)}
+            />
+            <StatCard
+              title="Total Products"
+              value={
+                overviewLoading ? "Loading..." : (overview.totalProducts ?? 0)
+              }
+            />
+          </section>
+
+          <section className="space-y-4">
+            <div className="rounded-2xl border border-muted/60 bg-white p-5 shadow-sm">
+              <h2 className="text-lg font-black text-slate-800">
+                Quick Actions
               </h2>
-              <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
-                {(["daily", "monthly"] as const).map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => setPeriod(p)}
-                    className={cn(
-                      "px-5 py-1.5 text-xs font-bold rounded-lg transition-all capitalize",
-                      period === p
-                        ? "bg-white dark:bg-slate-700 text-violet-600 shadow-sm"
-                        : "text-slate-500",
-                    )}
+              <p className="mt-1 text-sm text-muted-foreground">
+                Actions are shown based on your organization role.
+              </p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {quickActions.map((action) => (
+                <Link
+                  key={action.href}
+                  href={action.href}
+                  className="group rounded-2xl border border-violet-100 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-violet-200 hover:shadow-md"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="font-black text-slate-800">
+                        {action.title}
+                      </h3>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {action.description}
+                      </p>
+                    </div>
+
+                    <ArrowRight className="h-4 w-4 text-violet-500 transition-transform group-hover:translate-x-1" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+
+          <section className="grid gap-6 xl:grid-cols-3">
+            <div className="xl:col-span-2">
+              <div className="rounded-3xl border border-muted/60 bg-white p-5 shadow-sm">
+                <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="text-lg font-black text-slate-800">
+                      Sales Analytics
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      Track sales performance by period.
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant={period === "daily" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setPeriod("daily")}
+                      className="rounded-xl"
+                    >
+                      Daily
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={period === "monthly" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setPeriod("monthly")}
+                      className="rounded-xl"
+                    >
+                      Monthly
+                    </Button>
+                  </div>
+                </div>
+
+                {analyticsLoading ? (
+                  <div className="flex h-[320px] items-center justify-center text-sm text-muted-foreground">
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin text-violet-500" />
+                    Loading analytics...
+                  </div>
+                ) : (
+                  <SalesAnalyticsChart data={analytics} />
+                )}
+              </div>
+            </div>
+
+            <SimpleListCard title="Low Stock Alerts">
+              {lowStockLoading ? (
+                <p className="text-sm text-muted-foreground">
+                  Loading low stock...
+                </p>
+              ) : lowStock.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No low stock items found.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {lowStock.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between border-b pb-2 last:border-b-0"
+                    >
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4 text-amber-500" />
+                        <div>
+                          <p className="font-medium">{getProductName(item)}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {getItemLocation(item)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">
+                        {getStockQuantity(item)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SimpleListCard>
+          </section>
+
+          <SimpleListCard title="Top Products">
+            {topProductsLoading ? (
+              <p className="text-sm text-muted-foreground">
+                Loading top products...
+              </p>
+            ) : topProducts.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No top products data found.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {topProducts.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between border-b pb-2 last:border-b-0"
                   >
-                    {p}
-                  </button>
+                    <div className="flex items-center gap-2">
+                      <Package className="h-4 w-4 text-violet-500" />
+                      <div>
+                        <p className="font-medium">{getProductName(item)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Best-selling product
+                        </p>
+                      </div>
+                    </div>
+
+                    <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-bold text-violet-700">
+                      {getSoldQuantity(item)}
+                    </span>
+                  </div>
                 ))}
               </div>
-            </div>
-            {analyticsLoading ? (
-              <Skeleton className="h-[320px] w-full rounded-2xl" />
-            ) : (
-              <SalesAnalyticsChart data={analytics} />
             )}
-          </div>
-        </div>
-
-        {/* Low Stock Alerts List */}
-        <SimpleListCard
-          title="Stock Alerts"
-          headerAction={<AlertTriangle className="h-4 w-4 text-amber-500" />}
-        >
-          {lowStockLoading ? (
-            <div className="space-y-4 p-6">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-12 w-full rounded-xl" />
-              ))}
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-50 dark:divide-slate-800/50">
-              {lowStock.map((item) => (
-                <div
-                  key={item.id}
-                  className="group px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors flex items-center justify-between"
-                >
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                      {item.name}
-                    </span>
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
-                      {item.shopName || item.storageName || "Warehouse"}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-sm font-black text-rose-500">
-                      {formatNumber(item.stock)}
-                    </span>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase">
-                      Qty Left
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </SimpleListCard>
-      </div>
-
-      {/* Top Products Grid */}
-      <SimpleListCard
-        title="Best Selling Items"
-        headerAction={
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-xs font-bold text-violet-600 group/btn"
-          >
-            Full Inventory{" "}
-            <ArrowRight className="ml-2 h-3 w-3 group-hover/btn:translate-x-1 transition-transform" />
-          </Button>
-        }
-      >
-        {topProductsLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-6">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-20 w-full rounded-2xl" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 divide-x divide-y md:divide-y-0 border-t border-slate-50 dark:border-slate-800">
-            {topProducts.map((item) => (
-              <div
-                key={item.id}
-                className="p-6 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-all group"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="h-12 w-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-violet-600 transition-colors">
-                    <Package className="h-6 w-6 text-slate-400 group-hover:text-white" />
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-black text-slate-900 dark:text-slate-100">
-                      {formatNumber(item.totalSold)}
-                    </p>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-                      Units Sold
-                    </p>
-                  </div>
-                </div>
-                <h3 className="mt-4 font-bold text-slate-700 dark:text-slate-300 group-hover:text-violet-600 transition-colors">
-                  {item.name}
-                </h3>
-              </div>
-            ))}
-          </div>
-        )}
-      </SimpleListCard>
+          </SimpleListCard>
+        </>
+      )}
     </div>
   );
 }

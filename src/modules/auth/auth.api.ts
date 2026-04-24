@@ -36,3 +36,8 @@ export async function logout() {
   const res = await apiClient.post(ENDPOINTS.AUTH.LOGOUT);
   return res.data;
 }
+
+export async function getPlatformUser() {
+  const res = await apiClient.get("/auth/platform/me");
+  return res.data;
+}

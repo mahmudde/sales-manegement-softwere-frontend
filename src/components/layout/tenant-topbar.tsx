@@ -31,12 +31,23 @@ export default function TenantTopbar() {
   const queryClient = useQueryClient();
   const { data } = useCurrentUser();
 
+  const user = data?.data;
+  const displayName = user?.name || user?.name || "User";
+  const displayRole =
+    user?.role || user?.organizationMembers?.[0]?.role || user?.platformRole;
+
   const handleLogout = async () => {
     try {
       await logout();
-      await queryClient.removeQueries({
+
+      queryClient.removeQueries({
         queryKey: authKeys.me,
       });
+
+      queryClient.removeQueries({
+        queryKey: authKeys.platformMe,
+      });
+
       toast.success("Logged out successfully");
       router.replace("/login");
     } catch {
@@ -46,7 +57,6 @@ export default function TenantTopbar() {
 
   return (
     <header className="h-20 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-[#020617]/80 backdrop-blur-md sticky top-0 z-30 px-8 flex items-center justify-between">
-      {/* Left Section: Context / Search */}
       <div className="flex items-center gap-8">
         <div className="hidden lg:flex items-center relative group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-violet-500 transition-colors" />
@@ -61,9 +71,7 @@ export default function TenantTopbar() {
         </div>
       </div>
 
-      {/* Right Section: Actions & Profile */}
       <div className="flex items-center gap-3">
-        {/* Notifications */}
         <Button
           variant="ghost"
           size="icon"
@@ -75,7 +83,6 @@ export default function TenantTopbar() {
 
         <div className="h-8 w-[1px] bg-slate-200 dark:bg-slate-800 mx-2" />
 
-        {/* User Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -83,16 +90,19 @@ export default function TenantTopbar() {
               className="pl-2 pr-4 h-12 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-2xl gap-3 transition-all group"
             >
               <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center text-white font-bold shadow-lg shadow-violet-200 dark:shadow-none">
-                {data?.data.name?.charAt(0) || "U"}
+                {displayName.charAt(0)}
               </div>
+
               <div className="hidden sm:flex flex-col items-start">
                 <p className="text-sm font-bold text-slate-900 dark:text-slate-200 leading-none mb-1">
-                  {data?.data.name}
+                  {displayName}
                 </p>
+
                 <p className="text-[11px] font-semibold text-violet-600 dark:text-violet-400 uppercase tracking-wider leading-none">
-                  {data?.data.role?.replace("_", " ")}
+                  {displayRole?.replaceAll("_", " ") || "USER"}
                 </p>
               </div>
+
               <ChevronDown className="h-4 w-4 text-slate-400 group-hover:text-violet-500 transition-transform group-data-[state=open]:rotate-180" />
             </Button>
           </DropdownMenuTrigger>
@@ -104,15 +114,25 @@ export default function TenantTopbar() {
             <DropdownMenuLabel className="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
               My Account
             </DropdownMenuLabel>
-            <DropdownMenuItem className="rounded-xl px-3 py-2.5 cursor-pointer flex items-center gap-2 font-medium focus:bg-violet-50 focus:text-violet-600 dark:focus:bg-violet-500/10">
+
+            <DropdownMenuItem
+              onClick={() => router.push("/settings")}
+              className="rounded-xl px-3 py-2.5 cursor-pointer flex items-center gap-2 font-medium focus:bg-violet-50 focus:text-violet-600 dark:focus:bg-violet-500/10"
+            >
               <User className="h-4 w-4" />
               Profile Settings
             </DropdownMenuItem>
-            <DropdownMenuItem className="rounded-xl px-3 py-2.5 cursor-pointer flex items-center gap-2 font-medium focus:bg-violet-50 focus:text-violet-600 dark:focus:bg-violet-500/10">
+
+            <DropdownMenuItem
+              onClick={() => router.push("/settings")}
+              className="rounded-xl px-3 py-2.5 cursor-pointer flex items-center gap-2 font-medium focus:bg-violet-50 focus:text-violet-600 dark:focus:bg-violet-500/10"
+            >
               <Settings className="h-4 w-4" />
               System Config
             </DropdownMenuItem>
+
             <DropdownMenuSeparator className="my-2 bg-slate-100 dark:bg-slate-800" />
+
             <DropdownMenuItem
               onClick={handleLogout}
               className="rounded-xl px-3 py-2.5 cursor-pointer flex items-center gap-2 font-bold text-rose-600 focus:bg-rose-50 focus:text-rose-700 dark:focus:bg-rose-500/10"

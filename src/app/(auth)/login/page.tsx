@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { authKeys } from "@/modules/auth/auth.keys";
-import { login } from "@/modules/auth/auth.api";
+import { getPlatformUser, login } from "@/modules/auth/auth.api";
 import { parseApiError } from "@/lib/error-parser";
 import {
   Eye,
@@ -48,14 +48,30 @@ export default function LoginPage() {
 
   const onSubmit = async (data: FormValues) => {
     setGlobalError(null);
+
     try {
       await login(data);
+
+      try {
+        const platformUser = await getPlatformUser();
+
+        if (platformUser?.data?.platformRole === "PLATFORM_SUPER_ADMIN") {
+          await queryClient.invalidateQueries({
+            queryKey: authKeys.platformMe,
+          });
+
+          router.replace("/platform/dashboard");
+          return;
+        }
+      } catch {
+        // Not a platform admin. Continue as tenant user.
+      }
 
       await queryClient.invalidateQueries({
         queryKey: authKeys.me,
       });
 
-      router.push("/dashboard");
+      router.replace("/dashboard");
     } catch (error) {
       const parsed = parseApiError(error);
 
@@ -67,7 +83,6 @@ export default function LoginPage() {
         }
       });
 
-      // Using a subtle UI state instead of alert()
       setGlobalError(parsed.message);
     }
   };
@@ -103,7 +118,6 @@ export default function LoginPage() {
           </CardHeader>
 
           <CardContent className="px-8 pb-10">
-            {/* Professional Global Error Message */}
             <AnimatePresence>
               {globalError && (
                 <motion.div

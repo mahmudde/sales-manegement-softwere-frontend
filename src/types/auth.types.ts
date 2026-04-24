@@ -42,7 +42,9 @@ export interface AuthUser {
   image: string | null;
   phone: string | null;
   status: UserStatus;
-  platformRole: string | null;
+  role?: UserRole;
+  platformRole: UserRole | null;
+  organizationId?: string | null;
   organizationMembers: OrganizationMember[];
   shopAssignments: ShopAssignment[];
   createdAt: string;
