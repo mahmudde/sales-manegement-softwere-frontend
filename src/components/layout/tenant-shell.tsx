@@ -29,7 +29,7 @@ export default function TenantShell({ children }: TenantShellProps) {
           </div>
 
           <footer className="p-8 text-center text-slate-400 text-xs font-medium tracking-wide">
-            © 2026 NEXUS SALES MANAGEMENT • ENTERPRISE EDITION
+            © 2026 M ITSALES MANAGEMENT • ENTERPRISE EDITION
           </footer>
         </main>
       </div>

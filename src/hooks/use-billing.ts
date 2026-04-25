@@ -1,42 +1,12 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  createPaymentIntent,
-  getBillingHistory,
-  getBillingPlans,
-  getBillingStatus,
-} from "@/modules/billing/billing.api";
-import { billingKeys } from "@/modules/billing/billing.keys";
+import { useQuery } from "@tanstack/react-query";
+import { getBillingStatus } from "@/modules/billing/billing.api";
 
-export function useBillingPlans() {
+export function useBillingStatus(options?: { enabled?: boolean }) {
   return useQuery({
-    queryKey: billingKeys.plans,
-    queryFn: getBillingPlans,
-  });
-}
-
-export function useBillingStatus() {
-  return useQuery({
-    queryKey: billingKeys.status,
+    queryKey: ["billing", "status"],
     queryFn: getBillingStatus,
-  });
-}
-
-export function useBillingHistory() {
-  return useQuery({
-    queryKey: billingKeys.history,
-    queryFn: getBillingHistory,
-  });
-}
-
-export function useCreatePaymentIntent() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: createPaymentIntent,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: billingKeys.all });
-    },
+    enabled: options?.enabled ?? true,
   });
 }

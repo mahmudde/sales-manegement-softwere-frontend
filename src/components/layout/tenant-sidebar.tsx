@@ -23,7 +23,7 @@ export default function TenantSidebar() {
     return (
       <aside className="hidden md:flex md:w-64 md:flex-col border-r bg-background h-screen sticky top-0">
         <div className="h-16 border-b px-6 flex items-center">
-          <h2 className="text-lg font-bold text-primary">Nexus Sales</h2>
+          <h2 className="text-lg font-bold text-primary">M ITSales</h2>
         </div>
         <div className="p-6 space-y-4">
           {[...Array(8)].map((_, i) => (
@@ -41,7 +41,7 @@ export default function TenantSidebar() {
     <aside className="hidden md:flex md:w-64 md:flex-col border-r bg-background h-screen sticky top-0">
       <div className="h-16 border-b px-6 flex items-center">
         <h2 className="text-lg font-bold tracking-tight text-primary">
-          Nexus Sales
+          M ITSales
         </h2>
       </div>
 

@@ -137,7 +137,7 @@ export default function ProductForm({
                     Product Name
                   </label>
                   <Input
-                    placeholder="e.g. Nexus Pro Mouse"
+                    placeholder="e.g. M ITPro Mouse"
                     className="h-12 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none px-4 font-bold"
                     {...register("name")}
                   />

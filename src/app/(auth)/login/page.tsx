@@ -101,7 +101,7 @@ export default function LoginPage() {
             <Zap className="h-6 w-6 text-white fill-white/20" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
-            Nexus AI
+            M IT
           </h1>
           <p className="text-sm text-slate-500 mt-1 font-medium text-center">
             Sign in to manage your platform

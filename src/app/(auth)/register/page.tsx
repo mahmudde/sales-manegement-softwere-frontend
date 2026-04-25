@@ -96,7 +96,7 @@ export default function RegisterPage() {
             <Zap className="h-6 w-6 text-white fill-white/20" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
-            Nexus AI for Teams
+            M IT for Teams
           </h1>
           <p className="text-sm text-slate-500 mt-1 font-medium max-w-xs">
             Set up your organization and centralize your sales management today.
@@ -139,7 +139,7 @@ export default function RegisterPage() {
                   <Building2 className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-violet-500 transition-colors" />
                   <Input
                     {...register("organizationName")}
-                    placeholder="Nexus AI Corp"
+                    placeholder="M IT Corp"
                     className="pl-10 h-11 border-slate-200 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all bg-slate-50/30"
                   />
                 </div>

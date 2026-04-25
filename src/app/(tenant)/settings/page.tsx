@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import Link from "next/link";
@@ -29,30 +30,46 @@ function getImageUrl(user: any) {
 
 function normalizeAuthUser(rawUser: any) {
   const nestedUser = rawUser?.user;
+  const member = rawUser?.organizationMembers?.[0];
+
+  const role =
+    rawUser?.role || member?.role || rawUser?.platformRole || "UNKNOWN";
 
   return {
-    name: rawUser?.name || nestedUser?.name || "-",
-    email: rawUser?.email || nestedUser?.email || "-",
-    phone: rawUser?.phone || nestedUser?.phone || "-",
-    imageUrl: getImageUrl(rawUser),
-    role:
-      rawUser?.role ||
-      rawUser?.organizationMembers?.[0]?.role ||
-      rawUser?.platformRole ||
-      "UNKNOWN",
-    organization:
-      rawUser?.organization ||
-      rawUser?.organizationMembers?.[0]?.organization ||
-      null,
+    name: rawUser?.name || nestedUser?.name || member?.user?.name || "-",
+
+    email: rawUser?.email || nestedUser?.email || member?.user?.email || "-",
+
+    phone:
+      rawUser?.phone ||
+      nestedUser?.phone ||
+      member?.user?.phone ||
+      rawUser?.profile?.phone ||
+      "-",
+
+    imageUrl:
+      getImageUrl(rawUser) ||
+      getImageUrl(nestedUser) ||
+      getImageUrl(member?.user),
+
+    role,
+
+    organization: rawUser?.organization || member?.organization || null,
   };
 }
 
 export default function SettingsPage() {
   const { data: userData, isLoading: userLoading, isError } = useCurrentUser();
-  const { data: billingData, isLoading: billingLoading } = useBillingStatus();
-
   const rawUser = userData?.data;
   const profile = normalizeAuthUser(rawUser);
+
+  const canManageBilling =
+    profile.role === "ORG_SUPER_ADMIN" || profile.role === "ORG_ADMIN";
+
+  const { data: billingData, isLoading: billingLoading } = useBillingStatus({
+    enabled: canManageBilling,
+  } as any);
+
   const subscription = billingData?.data;
 
   if (userLoading) {
@@ -84,13 +101,17 @@ export default function SettingsPage() {
               Organization Settings
             </h1>
             <p className="text-sm text-muted-foreground">
-              Manage profile, organization context, and billing.
+              Manage profile and organization context.
             </p>
           </div>
         </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-2">
+      <div
+        className={`grid gap-6 ${
+          canManageBilling ? "xl:grid-cols-2" : "xl:grid-cols-1"
+        }`}
+      >
         <Card className="rounded-3xl border border-muted/60 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg font-black">
@@ -148,52 +169,54 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-3xl border border-muted/60 shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg font-black">
-              <CreditCard className="h-5 w-5 text-violet-500" />
-              Subscription
-            </CardTitle>
-          </CardHeader>
+        {canManageBilling ? (
+          <Card className="rounded-3xl border border-muted/60 shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg font-black">
+                <CreditCard className="h-5 w-5 text-violet-500" />
+                Subscription
+              </CardTitle>
+            </CardHeader>
 
-          <CardContent className="space-y-4 text-sm">
-            {billingLoading ? (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Loading subscription...
-              </div>
-            ) : subscription ? (
-              <>
-                <div className="rounded-2xl border bg-slate-50 p-4">
-                  <p className="text-xs font-bold uppercase text-muted-foreground">
-                    Status
-                  </p>
-                  <p className="text-lg font-black text-violet-700">
-                    {subscription.status || "-"}
-                  </p>
+            <CardContent className="space-y-4 text-sm">
+              {billingLoading ? (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading subscription...
                 </div>
+              ) : subscription ? (
+                <>
+                  <div className="rounded-2xl border bg-slate-50 p-4">
+                    <p className="text-xs font-bold uppercase text-muted-foreground">
+                      Status
+                    </p>
+                    <p className="text-lg font-black text-violet-700">
+                      {subscription.status || "-"}
+                    </p>
+                  </div>
 
-                <div className="rounded-2xl border bg-slate-50 p-4">
-                  <p className="text-xs font-bold uppercase text-muted-foreground">
-                    Plan
-                  </p>
-                  <p className="text-lg font-black text-slate-800">
-                    {subscription.billingPlan?.name || "-"}
-                  </p>
-                </div>
-              </>
-            ) : (
-              <p className="text-muted-foreground">No subscription found.</p>
-            )}
+                  <div className="rounded-2xl border bg-slate-50 p-4">
+                    <p className="text-xs font-bold uppercase text-muted-foreground">
+                      Plan
+                    </p>
+                    <p className="text-lg font-black text-slate-800">
+                      {subscription.billingPlan?.name || "-"}
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <p className="text-muted-foreground">No subscription found.</p>
+              )}
 
-            <Button
-              asChild
-              className="w-full rounded-2xl bg-violet-600 font-black uppercase hover:bg-violet-700"
-            >
-              <Link href="/billing">Manage Billing</Link>
-            </Button>
-          </CardContent>
-        </Card>
+              <Button
+                asChild
+                className="w-full rounded-2xl bg-violet-600 font-black uppercase hover:bg-violet-700"
+              >
+                <Link href="/billing">Manage Billing</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        ) : null}
       </div>
 
       <Card className="rounded-3xl border border-muted/60 shadow-sm">
@@ -249,18 +272,6 @@ export default function SettingsPage() {
               response.
             </p>
           )}
-
-          <div className="rounded-2xl border bg-slate-50 p-4">
-            <p className="font-bold text-slate-800">Future update fields:</p>
-
-            <ul className="mt-2 list-disc pl-5 text-muted-foreground space-y-1">
-              <li>Organization name</li>
-              <li>Phone</li>
-              <li>Address</li>
-              <li>Logo</li>
-              <li>Business email</li>
-            </ul>
-          </div>
         </CardContent>
       </Card>
     </div>
