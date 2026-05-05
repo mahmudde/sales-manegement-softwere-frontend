@@ -25,7 +25,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 const schema = z.object({
-  email: z.string().email("Enter a valid email"),
+  email: z.email("Enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -211,6 +211,16 @@ export default function LoginPage() {
                   "Sign in to Console"
                 )}
               </Button>
+              <div className="text-center pt-4">
+                <p className="text-sm text-slate-500">Don’t have an account?</p>
+                <button
+                  type="button"
+                  onClick={() => router.push("/register")}
+                  className="mt-1 text-sm font-semibold text-violet-600 hover:underline"
+                >
+                  Create an account
+                </button>
+              </div>
             </form>
           </CardContent>
         </Card>

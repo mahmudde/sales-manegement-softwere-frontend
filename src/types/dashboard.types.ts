@@ -1,11 +1,20 @@
 export type DashboardOverview = {
-  totalSales?: number;
-  totalRevenue?: number;
-  totalDue?: number;
-  totalProducts?: number;
-  totalCustomers?: number;
-  totalShops?: number;
-  totalStaff?: number;
+  summary: {
+    totalShops: number;
+    totalStaff: number;
+    totalProducts: number;
+    totalStorages: number;
+    totalInventoryRecords: number;
+    lowStockProducts: number;
+  };
+  sales: {
+    todaySalesCount: number;
+    todaySalesAmount: number;
+    monthlySalesCount: number;
+    monthlySalesAmount: number;
+  };
+  recentSales?: unknown[];
+  recentInventoryTransactions?: unknown[];
 };
 
 export type SalesAnalyticsItem = {

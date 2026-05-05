@@ -230,10 +230,10 @@ export default function DashboardPage() {
 
   const { data: lowStockData, isLoading: lowStockLoading } = useLowStock();
 
-  const overview = overviewData?.data ?? {};
-  const analytics = Array.isArray(analyticsData?.data)
-    ? analyticsData.data
-    : [];
+  const overview = overviewData?.data;
+
+  const summary = overview?.summary;
+  const sales = overview?.sales;
 
   const topProducts: DashboardItem[] = Array.isArray(topProductsData?.data)
     ? topProductsData.data
@@ -305,23 +305,25 @@ export default function DashboardPage() {
             <StatCard
               title="Total Sales"
               value={
-                overviewLoading ? "Loading..." : (overview.totalSales ?? 0)
+                overviewLoading ? "Loading..." : (sales?.monthlySalesCount ?? 0)
               }
             />
             <StatCard
               title="Total Revenue"
               value={
-                overviewLoading ? "Loading..." : (overview.totalRevenue ?? 0)
+                overviewLoading
+                  ? "Loading..."
+                  : (sales?.monthlySalesAmount ?? 0)
               }
             />
             <StatCard
               title="Total Due"
-              value={overviewLoading ? "Loading..." : (overview.totalDue ?? 0)}
+              value={overviewLoading ? "Loading..." : 0}
             />
             <StatCard
               title="Total Products"
               value={
-                overviewLoading ? "Loading..." : (overview.totalProducts ?? 0)
+                overviewLoading ? "Loading..." : (summary?.totalProducts ?? 0)
               }
             />
           </section>
@@ -401,7 +403,7 @@ export default function DashboardPage() {
                     Loading analytics...
                   </div>
                 ) : (
-                  <SalesAnalyticsChart data={analytics} />
+                  <SalesAnalyticsChart data={analyticsData?.data ?? []} />
                 )}
               </div>
             </div>
