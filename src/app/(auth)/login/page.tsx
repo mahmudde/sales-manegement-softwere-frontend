@@ -33,7 +33,6 @@ type FormValues = z.infer<typeof schema>;
 
 const getAuthBaseUrl = () => {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "";
-
   return apiUrl.replace(/\/api\/v1\/?$/, "");
 };
 
@@ -158,6 +157,7 @@ export default function LoginPage() {
           provider: "google",
           callbackURL: `${window.location.origin}/dashboard`,
           errorCallbackURL: `${window.location.origin}/login`,
+          disableRedirect: true,
         }),
       });
 
@@ -236,23 +236,20 @@ export default function LoginPage() {
                   Platform
                 </Button>
               </div>
-
-              <div className="grid grid-cols-1 gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-10 rounded-xl font-bold"
-                  onClick={handleGoogleLogin}
-                  disabled={isGoogleLoading}
-                >
-                  {isGoogleLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <GoogleIcon />
-                  )}
-                  Continue with Google
-                </Button>
-              </div>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10 rounded-xl font-bold"
+                onClick={handleGoogleLogin}
+                disabled={isGoogleLoading}
+              >
+                {isGoogleLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <GoogleIcon />
+                )}
+                Continue with Google
+              </Button>
             </div>
 
             <AnimatePresence>

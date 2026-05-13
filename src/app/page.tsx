@@ -4,11 +4,11 @@ import {
   BarChart3,
   CheckCircle2,
   PlayCircle,
-  ShieldCheck,
   Sparkles,
 } from "lucide-react";
 
 import PublicPageShell from "@/components/public/public-page-shell";
+import HeroCarousel from "@/components/public/hero-carousel";
 import { Button } from "@/components/ui/button";
 import {
   audienceCards,
@@ -55,48 +55,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl shadow-slate-200/60 dark:border-slate-800 dark:bg-slate-900 dark:shadow-none">
-            <div className="rounded-xl border border-slate-200 bg-slate-950 p-4 text-white dark:border-slate-800">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-400">Live agency console</p>
-                  <h2 className="text-xl font-black">Sales overview</h2>
-                </div>
-                <ShieldCheck className="h-8 w-8 text-emerald-300" />
-              </div>
-              <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                {["Revenue", "Stock", "Dues"].map((item, index) => (
-                  <div key={item} className="rounded-xl bg-white/10 p-4">
-                    <p className="text-xs uppercase tracking-widest text-slate-400">
-                      {item}
-                    </p>
-                    <p className="mt-2 text-2xl font-black">
-                      {index === 0 ? "82%" : index === 1 ? "1.4k" : "24"}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-5 h-44 rounded-xl bg-gradient-to-t from-violet-600/50 to-emerald-300/20 p-4">
-                <div className="flex h-full items-end gap-3">
-                  {[35, 58, 45, 76, 64, 88, 70].map((height) => (
-                    <span
-                      key={height}
-                      className="flex-1 rounded-t-lg bg-white/80"
-                      style={{ height: `${height}%` }}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="mt-4 grid gap-3">
-                {["Demo request received", "Stock warning resolved", "Invoice payment collected"].map((item) => (
-                  <div key={item} className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-300" />
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          <HeroCarousel />
         </div>
       </section>
 

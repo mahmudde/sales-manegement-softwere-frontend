@@ -67,12 +67,43 @@ export default async function PricingDetailsPage({
               attracts prospects, while the private dashboard handles daily
               sales, stock, billing, and team activity.
             </p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-800">
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Plan tier</p>
+                <p className="mt-2 text-sm font-black">{plan.category}</p>
+              </div>
+              <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-800">
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Billing cycle</p>
+                <p className="mt-2 text-sm font-black capitalize">{plan.interval}</p>
+              </div>
+              <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-800">
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Capabilities</p>
+                <p className="mt-2 text-sm font-black">{plan.features.length} included</p>
+              </div>
+            </div>
           </div>
           <div className="grid gap-3">
             {plan.features.map((feature) => (
               <div key={feature} className="flex items-center gap-3 rounded-xl border border-slate-200 p-4 dark:border-slate-800">
                 <CheckCircle2 className="h-5 w-5 text-emerald-500" />
                 <span className="text-sm font-semibold">{feature}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-slate-50 py-12 dark:bg-slate-900/40">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-black">Media preview</h2>
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            {plan.media.map((imageUrl) => (
+              <div key={imageUrl} className="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+                <img
+                  src={imageUrl}
+                  alt={`${plan.name} preview`}
+                  className="h-56 w-full object-cover"
+                />
               </div>
             ))}
           </div>

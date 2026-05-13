@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BriefcaseBusiness, Code2, Globe2, Mail, MapPin, Phone } from "lucide-react";
+import { Code2, Globe2, Mail, MapPin, Phone } from "lucide-react";
 
 const footerLinks = [
   {
@@ -76,10 +76,10 @@ export default function PublicFooter() {
             <Link href="https://github.com/mahmudde" aria-label="GitHub" className="rounded-lg p-2 hover:bg-white/10">
               <Code2 className="h-4 w-4" />
             </Link>
-            <Link href="https://www.linkedin.com" aria-label="LinkedIn" className="rounded-lg p-2 hover:bg-white/10">
-              <BriefcaseBusiness className="h-4 w-4" />
+            <Link href="mailto:support@mitsales.com" aria-label="Email Support" className="rounded-lg p-2 hover:bg-white/10">
+              <Mail className="h-4 w-4" />
             </Link>
-            <Link href="https://www.facebook.com" aria-label="Facebook" className="rounded-lg p-2 hover:bg-white/10">
+            <Link href="/support" aria-label="Support Page" className="rounded-lg p-2 hover:bg-white/10">
               <Globe2 className="h-4 w-4" />
             </Link>
           </div>

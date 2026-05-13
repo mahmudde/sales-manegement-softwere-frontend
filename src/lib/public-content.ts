@@ -95,6 +95,11 @@ export const pricingPlans = [
       "Sales and due tracking",
       "Basic dashboard analytics",
     ],
+    media: [
+      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&q=80",
+    ],
     popular: false,
   },
   {
@@ -111,6 +116,11 @@ export const pricingPlans = [
       "Storage-wise inventory",
       "Payment history and returns workflow",
       "Priority support",
+    ],
+    media: [
+      "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1200&q=80",
     ],
     popular: true,
   },
@@ -129,6 +139,11 @@ export const pricingPlans = [
       "Billing and subscription controls",
       "Dedicated onboarding session",
     ],
+    media: [
+      "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80",
+    ],
     popular: false,
   },
   {
@@ -145,6 +160,11 @@ export const pricingPlans = [
       "Data import assistance",
       "Custom report planning",
       "Dedicated success contact",
+    ],
+    media: [
+      "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1557426272-fc759fdf7a8d?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=1200&q=80",
     ],
     popular: false,
   },

@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowUpDown, Search, SlidersHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { pricingPlans } from "@/lib/public-content";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type SortOption = "recommended" | "price-asc" | "price-desc";
 
@@ -15,6 +16,12 @@ export default function PricingListing() {
   const [category, setCategory] = useState("all");
   const [price, setPrice] = useState("all");
   const [sort, setSort] = useState<SortOption>("recommended");
+  const [isFiltering, setIsFiltering] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsFiltering(false), 350);
+    return () => clearTimeout(timer);
+  }, [searchTerm, category, price, sort]);
 
   const filteredPlans = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -101,30 +108,44 @@ export default function PricingListing() {
       </div>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {filteredPlans.map((plan) => (
-          <article key={plan.id} className="flex min-h-[430px] flex-col rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900/50">
-            <div className="aspect-[4/3] rounded-xl bg-slate-950 p-4 text-white">
-              <div className="flex h-full flex-col justify-between rounded-lg border border-white/10 bg-white/5 p-4">
-                <div>
-                  <p className="text-xs uppercase tracking-widest text-violet-200">
-                    {plan.category}
-                  </p>
-                  <h3 className="mt-2 text-2xl font-black">{plan.name}</h3>
+        {isFiltering
+          ? Array.from({ length: 4 }).map((_, idx) => (
+              <article
+                key={`skeleton-${idx}`}
+                className="flex min-h-[430px] flex-col rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900/50"
+              >
+                <Skeleton className="aspect-[4/3] rounded-xl" />
+                <Skeleton className="mt-4 h-5 w-2/3" />
+                <Skeleton className="mt-3 h-4 w-full" />
+                <Skeleton className="mt-2 h-4 w-5/6" />
+                <Skeleton className="mt-4 h-4 w-1/2" />
+                <Skeleton className="mt-auto h-10 w-full rounded-xl" />
+              </article>
+            ))
+          : filteredPlans.map((plan) => (
+              <article key={plan.id} className="flex min-h-[430px] flex-col rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900/50">
+                <div className="aspect-[4/3] rounded-xl bg-slate-950 p-4 text-white">
+                  <div className="flex h-full flex-col justify-between rounded-lg border border-white/10 bg-white/5 p-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-widest text-violet-200">
+                        {plan.category}
+                      </p>
+                      <h3 className="mt-2 text-2xl font-black">{plan.name}</h3>
+                    </div>
+                    <p className="text-3xl font-black">Tk {plan.price.toLocaleString()}</p>
+                  </div>
                 </div>
-                <p className="text-3xl font-black">Tk {plan.price.toLocaleString()}</p>
-              </div>
-            </div>
-            <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">
-              {plan.description}
-            </p>
-            <div className="mt-4 text-sm font-semibold text-slate-500">
-              {plan.features.length} included capabilities
-            </div>
-            <Button asChild className="mt-auto rounded-xl bg-violet-600 text-white hover:bg-violet-700">
-              <Link href={`/pricing/${plan.id}`}>View Details</Link>
-            </Button>
-          </article>
-        ))}
+                <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                  {plan.description}
+                </p>
+                <div className="mt-4 text-sm font-semibold text-slate-500">
+                  {plan.features.length} included capabilities
+                </div>
+                <Button asChild className="mt-auto rounded-xl bg-violet-600 text-white hover:bg-violet-700">
+                  <Link href={`/pricing/${plan.id}`}>View Details</Link>
+                </Button>
+              </article>
+            ))}
       </div>
 
       {filteredPlans.length === 0 ? (
