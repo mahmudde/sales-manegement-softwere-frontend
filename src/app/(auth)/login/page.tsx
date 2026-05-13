@@ -167,42 +167,36 @@ export default function LoginPage() {
     setGlobalError(null);
     setIsGoogleLoading(true);
 
-    try {
-      const authBaseUrl = getAuthBaseUrl();
-
-      if (!authBaseUrl) {
-        throw new Error("Google login is not configured yet.");
-      }
-
-      const response = await fetch(`${authBaseUrl}/api/auth/sign-in/social`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          provider: "google",
-          callbackURL: `${window.location.origin}/dashboard`,
-          errorCallbackURL: `${window.location.origin}/login`,
-          disableRedirect: true,
-        }),
-      });
-
-      const result = await response.json().catch(() => null);
-
-      if (!response.ok || !result?.url) {
-        throw new Error(result?.message ?? "Unable to start Google login.");
-      }
-
-      window.location.href = result.url;
-    } catch (error) {
+    const authBaseUrl = getAuthBaseUrl();
+    if (!authBaseUrl) {
       setIsGoogleLoading(false);
-      setGlobalError(
-        error instanceof Error
-          ? error.message
-          : "Unable to start Google login.",
-      );
+      setGlobalError("Google login is not configured yet.");
+      return;
     }
+
+    // Use a top-level POST navigation so OAuth state cookie/session is created in
+    // a first-party context, avoiding cross-site state mismatch issues.
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = `${authBaseUrl}/api/auth/sign-in/social`;
+    form.style.display = "none";
+
+    const fields: Record<string, string> = {
+      provider: "google",
+      callbackURL: `${window.location.origin}/dashboard`,
+      errorCallbackURL: `${window.location.origin}/login`,
+    };
+
+    Object.entries(fields).forEach(([key, value]) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = value;
+      form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
   };
 
   return (
