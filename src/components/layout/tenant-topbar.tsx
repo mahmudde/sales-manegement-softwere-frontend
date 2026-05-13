@@ -17,6 +17,7 @@ import { authKeys } from "@/modules/auth/auth.keys";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
 import { Button } from "@/components/ui/button";
+import ThemeToggle from "@/components/public/theme-toggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,7 +67,7 @@ export default function TenantTopbar() {
             className="h-10 w-64 pl-10 pr-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition-all text-sm font-medium"
           />
           <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border border-slate-200 bg-white px-1.5 font-mono text-[10px] font-medium text-slate-400 opacity-100">
-            ⌘K
+            Ctrl K
           </kbd>
         </div>
       </div>
@@ -80,6 +81,8 @@ export default function TenantTopbar() {
           <Bell className="h-5 w-5" />
           <span className="absolute top-2.5 right-2.5 h-2 w-2 bg-rose-500 rounded-full border-2 border-white dark:border-[#020617]" />
         </Button>
+
+        <ThemeToggle />
 
         <div className="h-8 w-[1px] bg-slate-200 dark:bg-slate-800 mx-2" />
 
@@ -146,3 +149,4 @@ export default function TenantTopbar() {
     </header>
   );
 }
+

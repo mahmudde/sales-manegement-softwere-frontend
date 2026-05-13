@@ -29,10 +29,11 @@ export default function TenantShell({ children }: TenantShellProps) {
           </div>
 
           <footer className="p-8 text-center text-slate-400 text-xs font-medium tracking-wide">
-            © 2026 M ITSALES MANAGEMENT • ENTERPRISE EDITION
+            Copyright 2026 M ITSales Management. Enterprise Edition.
           </footer>
         </main>
       </div>
     </div>
   );
 }
+

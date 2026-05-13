@@ -308,7 +308,7 @@ export default function LoginPage() {
 
         <div className="mt-8 text-center">
           <p className="text-[13px] text-slate-400">
-            Secure login for registered administrators only.
+            Demo credentials are available for assignment review.
           </p>
         </div>
       </motion.div>

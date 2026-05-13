@@ -8,14 +8,21 @@ export type ProductImage = {
 export type Product = {
   id: string;
   name: string;
+  slug?: string;
+  description?: string;
   sku?: string;
   price: number;
   costPrice?: number;
   categoryId?: string;
   categoryName?: string;
+  category?: {
+    id: string;
+    name?: string;
+  };
   status?: ProductStatus;
   image?: ProductImage | null;
   createdAt?: string;
+  updatedAt?: string;
 };
 
 export type ProductsListMeta = {
