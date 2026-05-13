@@ -1,5 +1,5 @@
-import ContactForm from "@/components/public/contact-form";
 import PublicPageShell from "@/components/public/public-page-shell";
+import SupportTicketForm from "@/components/public/support-ticket-form";
 import { faqs } from "@/lib/public-content";
 
 export default function SupportPage() {
@@ -25,7 +25,7 @@ export default function SupportPage() {
               ))}
             </div>
           </div>
-          <ContactForm />
+          <SupportTicketForm />
         </div>
       </section>
     </PublicPageShell>

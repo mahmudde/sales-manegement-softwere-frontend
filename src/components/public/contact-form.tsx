@@ -6,6 +6,7 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { createContactMessage } from "@/modules/public/public.api";
 
 type FormState = {
   name: string;
@@ -28,11 +29,13 @@ export default function ContactForm() {
   const [errors, setErrors] = useState<Partial<FormState>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const updateField = (key: keyof FormState, value: string) => {
     setForm((current) => ({ ...current, [key]: value }));
     setErrors((current) => ({ ...current, [key]: "" }));
     setIsSuccess(false);
+    setSubmitError("");
   };
 
   const validate = () => {
@@ -64,10 +67,23 @@ export default function ContactForm() {
     if (!validate()) return;
 
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 700));
-    setIsSubmitting(false);
-    setIsSuccess(true);
-    setForm(initialState);
+    setSubmitError("");
+
+    try {
+      await createContactMessage({
+        name: form.name,
+        email: form.email,
+        phone: form.phone || undefined,
+        company: form.company || undefined,
+        message: form.message,
+      });
+      setIsSuccess(true);
+      setForm(initialState);
+    } catch {
+      setSubmitError("We could not submit your request. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -101,7 +117,13 @@ export default function ContactForm() {
       {isSuccess ? (
         <div className="mt-4 flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
           <CheckCircle2 className="h-4 w-4" />
-          Your request is ready for the agency lead workflow.
+          Your request has been submitted to the agency lead workflow.
+        </div>
+      ) : null}
+
+      {submitError ? (
+        <div className="mt-4 rounded-xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 dark:bg-rose-500/10 dark:text-rose-300">
+          {submitError}
         </div>
       ) : null}
 
