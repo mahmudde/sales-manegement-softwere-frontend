@@ -1,76 +1,68 @@
-Sales Management Software (Frontend)
+# M ITSales Frontend
 
-A modern multi-tenant SaaS POS & Sales Management System frontend built with Next.js, designed to work with a scalable backend architecture. This system supports role-based access, billing via Stripe, and full business workflows including products, sales, inventory, and platform administration.
+Next.js frontend for an open agency-style sales management platform. The app now has a public customer-facing website plus a protected role-based dashboard.
 
-Live Demo
-Frontend: (add your deployed URL)
-Backend API: (add backend URL)
-Features
-Authentication & Authorization
-Cookie-based session authentication (Better Auth)
-Role-based UI rendering
-Supports:
-ORG_SUPER_ADMIN
-ORG_ADMIN
-SHOP_ADMIN
-STAFF
-PLATFORM_SUPER_ADMIN
-Multi-Tenant Architecture
-Each user belongs to an organization
-Data is scoped per organization
-Platform admin can manage all organizations
-Dashboard
-Role-based dashboard views
-Sales analytics (daily/monthly)
-KPI cards:
-Revenue
-Sales
-Products
-Inventory alerts
-Product & Category Management
-Full CRUD operations
-Category selection via dropdown
-Inline category creation modal
-Image upload via Cloudinary
-Sales Module
-Create sales with multiple items
-Payment tracking (partial/full)
-Dynamic product selection
-Auto total + discount handling
-Inventory Module
-Stock In / Stock Out
-Inventory tracking by shop & storage
-Role-based access control
-Shop & Storage Management
-Multi-shop support
-Storage per shop
-Used in inventory and sales flows
-Staff Management
-Create and manage staff
-Role assignment
-Status toggle (active/inactive)
-Billing (Stripe Integration)
-Subscription plans
-Stripe Payment Element
-Payment intent flow
-Webhook-based subscription activation
-Platform Admin Panel
-Separate /platform routes
-View all organizations
-Suspend/activate organizations
-Platform-wide dashboard
-Tech Stack
-Core
-Next.js (App Router)
-TypeScript
-React Query (@tanstack/react-query)
-UI
-Tailwind CSS
-shadcn/ui
-Lucide Icons
-Forms & Validation
-React Hook Form
-Zod
-State & Data
-React Query for server state
-Custom hooks per module
+## Public Experience
+
+- `/` public landing page with navbar, hero, feature sections, pricing preview, testimonials, FAQ, and CTA.
+- `/features`, `/services`, `/pricing`, `/pricing/[id]`, `/about`, `/contact`, `/support`, `/blog`, `/privacy`, and `/terms`.
+- Pricing cards include visual area, title, description, price metadata, filters, sorting, and details pages.
+- Contact and support forms submit to backend customer interaction APIs.
+- Light/dark theme toggle for public and dashboard UI.
+
+## Dashboard Experience
+
+- Role-based tenant dashboard.
+- Products, categories, shops, staff, storages, inventory, sales, billing, settings, and customer leads.
+- `/leads` lets admins review contact messages, demo requests, and support tickets.
+- `/products/[id]` product details page.
+- Sale details now include payment history and sale return creation/history.
+
+## Local Setup
+
+```bash
+npm install
+cp .env.local.example .env.local
+npm run dev
+```
+
+The frontend runs at `http://localhost:3000`.
+
+## Environment
+
+```txt
+NEXT_PUBLIC_API_URL=http://localhost:5000/api/v1
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_replace
+```
+
+## Demo Credentials
+
+```txt
+Platform Admin
+Email: platformadmin@gmail.com
+Password: 12345678
+
+Organization Admin
+Email: admin@mitsales.demo
+Password: 12345678
+
+Staff
+Email: staff@mitsales.demo
+Password: 12345678
+```
+
+The login page includes demo buttons that autofill these credentials.
+
+## Submission Links
+
+Frontend repository:
+https://github.com/mahmudde/sales-manegement-softwere-frontend.git
+
+Backend repository:
+https://github.com/mahmudde/sales-manegement-softwere-backend.git
+
+Live URL:
+Add the deployed frontend URL here after deployment.
+
+Backend API URL:
+Add the deployed backend URL here after deployment.
