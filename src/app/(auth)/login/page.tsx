@@ -18,6 +18,7 @@ import {
   Loader2,
   Zap,
   AlertCircle,
+  Globe2,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,10 +42,32 @@ export default function LoginPage() {
     register,
     handleSubmit,
     setError,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
   });
+
+  const fillDemoCredentials = (type: "admin" | "staff" | "platform") => {
+    const credentials = {
+      admin: {
+        email: "admin@mitsales.demo",
+        password: "12345678",
+      },
+      staff: {
+        email: "staff@mitsales.demo",
+        password: "12345678",
+      },
+      platform: {
+        email: "platformadmin@gmail.com",
+        password: "12345678",
+      },
+    }[type];
+
+    setValue("email", credentials.email, { shouldValidate: true });
+    setValue("password", credentials.password, { shouldValidate: true });
+    setGlobalError(null);
+  };
 
   const onSubmit = async (data: FormValues) => {
     setGlobalError(null);
@@ -118,6 +141,64 @@ export default function LoginPage() {
           </CardHeader>
 
           <CardContent className="px-8 pb-10">
+            <div className="mb-6 grid gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fillDemoCredentials("admin")}
+                  className="h-10 rounded-xl text-xs font-bold"
+                >
+                  Demo Admin
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fillDemoCredentials("staff")}
+                  className="h-10 rounded-xl text-xs font-bold"
+                >
+                  Demo Staff
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fillDemoCredentials("platform")}
+                  className="h-10 rounded-xl text-xs font-bold"
+                >
+                  Platform
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10 rounded-xl font-bold"
+                  onClick={() =>
+                    setGlobalError(
+                      "Google login requires OAuth environment keys on the backend.",
+                    )
+                  }
+                >
+                  <Globe2 className="h-4 w-4" />
+                  Google
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10 rounded-xl font-bold"
+                  onClick={() =>
+                    setGlobalError(
+                      "Facebook login requires OAuth environment keys on the backend.",
+                    )
+                  }
+                >
+                  <Globe2 className="h-4 w-4" />
+                  Facebook
+                </Button>
+              </div>
+            </div>
+
             <AnimatePresence>
               {globalError && (
                 <motion.div
