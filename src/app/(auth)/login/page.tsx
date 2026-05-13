@@ -163,21 +163,27 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleSocialLogin = async (provider: "google" | "facebook") => {
     setGlobalError(null);
     setIsGoogleLoading(true);
 
     const authBaseUrl = getAuthBaseUrl();
     if (!authBaseUrl) {
       setIsGoogleLoading(false);
-      setGlobalError("Google login is not configured yet.");
+      setGlobalError(`${provider} login is not configured yet.`);
+      return;
+    }
+
+    if (provider === "facebook") {
+      setIsGoogleLoading(false);
+      setGlobalError("Facebook login is currently unavailable.");
       return;
     }
 
     const callbackURL = encodeURIComponent(`${window.location.origin}/dashboard`);
     const errorCallbackURL = encodeURIComponent(`${window.location.origin}/login`);
     window.location.assign(
-      `${authBaseUrl}/auth/google/start?callbackURL=${callbackURL}&errorCallbackURL=${errorCallbackURL}`,
+      `${authBaseUrl}/auth/${provider}/start?callbackURL=${callbackURL}&errorCallbackURL=${errorCallbackURL}`,
     );
   };
 
@@ -267,7 +273,7 @@ export default function LoginPage() {
                   type="button"
                   variant="outline"
                   className="h-10 rounded-xl font-bold"
-                  onClick={handleGoogleLogin}
+                  onClick={() => handleSocialLogin("google")}
                   disabled={isGoogleLoading || isSubmitting || activeDemoLogin !== null}
                 >
                 {isGoogleLoading ? (
