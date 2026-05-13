@@ -33,8 +33,13 @@ export type SaleItem = {
 
 export type Sale = {
   id: string;
+  invoiceNo?: string;
   invoiceNumber?: string;
   shopId?: string;
+  shop?: {
+    id: string;
+    name?: string;
+  };
   shopName?: string;
   storageId?: string;
   storageName?: string;
@@ -90,9 +95,25 @@ export type CancelSalePayload = {
 export type SaleReturn = {
   id: string;
   saleId: string;
+  refundAmount?: number;
+  status?: string;
+  note?: string;
+  storage?: {
+    id: string;
+    name?: string;
+  };
+  returnedBy?: {
+    id: string;
+    name?: string;
+  };
   items: {
     saleItemId: string;
     quantity: number;
+    totalPrice?: number;
+    product?: {
+      id: string;
+      name?: string;
+    };
   }[];
   createdAt: string;
 };

@@ -4,27 +4,37 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import { Package, Receipt, Loader2, AlertCircle } from "lucide-react";
+import { Package, Receipt, Loader2, AlertCircle, RotateCcw } from "lucide-react";
 
-import { useAddSalePayment, useSale, useSalePayments } from "@/hooks/use-sales";
+import {
+  useAddSalePayment,
+  useCreateSaleReturn,
+  useSale,
+  useSalePayments,
+  useSaleReturns,
+} from "@/hooks/use-sales";
 import { formatCurrency } from "@/lib/format";
 
 import type { AddPaymentSchemaValues } from "@/modules/sales/payment.schema";
 
 import { Button } from "@/components/ui/button";
 import AddPaymentModal from "@/components/sales/add-payment-modal";
-import { SalePayment } from "@/modules/sales/sales.type";
+import SaleReturnModal from "@/components/sales/sale-return-modal";
+import { SalePayment, SaleReturn } from "@/modules/sales/sales.type";
 
 export default function SaleDetailsPage() {
   const params = useParams<{ id: string }>();
   const saleId = params.id;
 
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [returnModalOpen, setReturnModalOpen] = useState(false);
 
   const { data, isLoading, isError } = useSale(saleId);
   const { data: paymentsData } = useSalePayments(saleId);
+  const { data: returnsData } = useSaleReturns(saleId);
 
   const addPaymentMutation = useAddSalePayment(saleId);
+  const createSaleReturnMutation = useCreateSaleReturn(saleId);
 
   const sale = data?.data;
 
@@ -33,6 +43,10 @@ export default function SaleDetailsPage() {
     : Array.isArray(paymentsData?.data?.payments)
       ? paymentsData.data.payments
       : [];
+
+  const returns: SaleReturn[] = Array.isArray(returnsData?.data)
+    ? returnsData.data
+    : [];
 
   if (isLoading) {
     return (
@@ -60,7 +74,7 @@ export default function SaleDetailsPage() {
         <div>
           <h1 className="text-2xl font-black text-slate-800">Sale Details</h1>
           <p className="text-sm text-muted-foreground">
-            Invoice: {sale.invoiceNumber || sale.id}
+            Invoice: {sale.invoiceNo || sale.invoiceNumber || sale.id}
           </p>
         </div>
 
@@ -71,6 +85,14 @@ export default function SaleDetailsPage() {
             className="bg-violet-600 hover:bg-violet-700"
           >
             Add Payment
+          </Button>
+
+          <Button
+            onClick={() => setReturnModalOpen(true)}
+            disabled={sale.status === "CANCELLED"}
+            variant="outline"
+          >
+            Create Return
           </Button>
 
           <Button asChild variant="outline">
@@ -163,12 +185,66 @@ export default function SaleDetailsPage() {
         )}
       </div>
 
+      {/* Returns */}
+      <div className="rounded-2xl border bg-white p-5 shadow-sm">
+        <div className="flex items-center gap-2 mb-4">
+          <RotateCcw className="h-5 w-5 text-violet-500" />
+          <h2 className="text-lg font-bold">Sale Returns</h2>
+        </div>
+
+        {returns.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No returns found.</p>
+        ) : (
+          <div className="space-y-3">
+            {returns.map((saleReturn) => (
+              <div key={saleReturn.id} className="rounded-2xl border p-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="font-bold text-slate-800">
+                      {saleReturn.status || "RETURN"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Storage: {saleReturn.storage?.name || "Selected storage"}
+                    </p>
+                  </div>
+                  <p className="font-black text-violet-600">
+                    {formatCurrency(Number(saleReturn.refundAmount || 0))}
+                  </p>
+                </div>
+                <div className="mt-3 grid gap-2">
+                  {saleReturn.items?.map((item) => (
+                    <div
+                      key={`${saleReturn.id}-${item.saleItemId}`}
+                      className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm"
+                    >
+                      <span>{item.product?.name || item.saleItemId}</span>
+                      <span className="font-bold">Qty {item.quantity}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <AddPaymentModal
         open={paymentModalOpen}
         onOpenChange={setPaymentModalOpen}
         dueAmount={dueAmount}
         onSubmitAction={async (payload: AddPaymentSchemaValues) => {
           await addPaymentMutation.mutateAsync(payload);
+        }}
+      />
+
+      <SaleReturnModal
+        open={returnModalOpen}
+        onOpenChange={setReturnModalOpen}
+        shopId={sale.shopId || sale.shop?.id}
+        items={sale.items || []}
+        isSubmitting={createSaleReturnMutation.isPending}
+        onSubmitAction={async (payload) => {
+          await createSaleReturnMutation.mutateAsync(payload);
         }}
       />
     </div>
