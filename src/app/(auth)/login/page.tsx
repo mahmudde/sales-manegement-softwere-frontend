@@ -174,29 +174,38 @@ export default function LoginPage() {
       return;
     }
 
-    // Use a top-level POST navigation so OAuth state cookie/session is created in
-    // a first-party context, avoiding cross-site state mismatch issues.
-    const form = document.createElement("form");
-    form.method = "POST";
-    form.action = `${authBaseUrl}/api/auth/sign-in/social`;
-    form.style.display = "none";
+    try {
+      const response = await fetch(`${authBaseUrl}/api/auth/sign-in/social`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          provider: "google",
+          callbackURL: `${window.location.origin}/dashboard`,
+          errorCallbackURL: `${window.location.origin}/login`,
+        }),
+      });
 
-    const fields: Record<string, string> = {
-      provider: "google",
-      callbackURL: `${window.location.origin}/dashboard`,
-      errorCallbackURL: `${window.location.origin}/login`,
-    };
+      const data = (await response.json()) as {
+        url?: string;
+        message?: string;
+      };
 
-    Object.entries(fields).forEach(([key, value]) => {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = key;
-      input.value = value;
-      form.appendChild(input);
-    });
+      if (!response.ok || !data.url) {
+        throw new Error(data.message || "Failed to start Google login.");
+      }
 
-    document.body.appendChild(form);
-    form.submit();
+      window.location.assign(data.url);
+    } catch (error) {
+      setIsGoogleLoading(false);
+      setGlobalError(
+        error instanceof Error
+          ? error.message
+          : "Google login failed. Please try again.",
+      );
+    }
   };
 
   return (
