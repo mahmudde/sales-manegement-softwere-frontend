@@ -63,6 +63,9 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [activeDemoLogin, setActiveDemoLogin] = useState<
+    "admin" | "staff" | "platform" | null
+  >(null);
 
   const {
     register,
@@ -74,8 +77,8 @@ export default function LoginPage() {
     resolver: zodResolver(schema),
   });
 
-  const fillDemoCredentials = (type: "admin" | "staff" | "platform") => {
-    const credentials = {
+  const getDemoCredentials = (type: "admin" | "staff" | "platform") => {
+    return {
       admin: {
         email: "admin@mitsales.demo",
         password: "12345678",
@@ -89,10 +92,37 @@ export default function LoginPage() {
         password: "12345678",
       },
     }[type];
+  };
+
+  const fillDemoCredentials = (type: "admin" | "staff" | "platform") => {
+    const credentials = getDemoCredentials(type);
 
     setValue("email", credentials.email, { shouldValidate: true });
     setValue("password", credentials.password, { shouldValidate: true });
     setGlobalError(null);
+  };
+
+  const completeLoginRedirect = async () => {
+    try {
+      const platformUser = await getPlatformUser();
+
+      if (platformUser?.data?.platformRole === "PLATFORM_SUPER_ADMIN") {
+        await queryClient.invalidateQueries({
+          queryKey: authKeys.platformMe,
+        });
+
+        router.replace("/platform/dashboard");
+        return;
+      }
+    } catch {
+      // Not a platform admin. Continue as tenant user.
+    }
+
+    await queryClient.invalidateQueries({
+      queryKey: authKeys.me,
+    });
+
+    router.replace("/dashboard");
   };
 
   const onSubmit = async (data: FormValues) => {
@@ -100,27 +130,7 @@ export default function LoginPage() {
 
     try {
       await login(data);
-
-      try {
-        const platformUser = await getPlatformUser();
-
-        if (platformUser?.data?.platformRole === "PLATFORM_SUPER_ADMIN") {
-          await queryClient.invalidateQueries({
-            queryKey: authKeys.platformMe,
-          });
-
-          router.replace("/platform/dashboard");
-          return;
-        }
-      } catch {
-        // Not a platform admin. Continue as tenant user.
-      }
-
-      await queryClient.invalidateQueries({
-        queryKey: authKeys.me,
-      });
-
-      router.replace("/dashboard");
+      await completeLoginRedirect();
     } catch (error) {
       const parsed = parseApiError(error);
 
@@ -133,6 +143,23 @@ export default function LoginPage() {
       });
 
       setGlobalError(parsed.message);
+    }
+  };
+
+  const handleDemoLogin = async (type: "admin" | "staff" | "platform") => {
+    const credentials = getDemoCredentials(type);
+
+    fillDemoCredentials(type);
+    setGlobalError(null);
+    setActiveDemoLogin(type);
+
+    try {
+      await login(credentials);
+      await completeLoginRedirect();
+    } catch (error) {
+      const parsed = parseApiError(error);
+      setGlobalError(parsed.message);
+      setActiveDemoLogin(null);
     }
   };
 
@@ -214,35 +241,59 @@ export default function LoginPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => fillDemoCredentials("admin")}
+                  onClick={() => handleDemoLogin("admin")}
+                  disabled={isSubmitting || isGoogleLoading || activeDemoLogin !== null}
                   className="h-10 rounded-xl text-xs font-bold"
                 >
-                  Demo Admin
+                  {activeDemoLogin === "admin" ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Signing in...
+                    </>
+                  ) : (
+                    "Demo Admin"
+                  )}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => fillDemoCredentials("staff")}
+                  onClick={() => handleDemoLogin("staff")}
+                  disabled={isSubmitting || isGoogleLoading || activeDemoLogin !== null}
                   className="h-10 rounded-xl text-xs font-bold"
                 >
-                  Demo Staff
+                  {activeDemoLogin === "staff" ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Signing in...
+                    </>
+                  ) : (
+                    "Demo Staff"
+                  )}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => fillDemoCredentials("platform")}
+                  onClick={() => handleDemoLogin("platform")}
+                  disabled={isSubmitting || isGoogleLoading || activeDemoLogin !== null}
                   className="h-10 rounded-xl text-xs font-bold"
                 >
-                  Platform
+                  {activeDemoLogin === "platform" ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Signing in...
+                    </>
+                  ) : (
+                    "Platform"
+                  )}
                 </Button>
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                className="h-10 rounded-xl font-bold"
-                onClick={handleGoogleLogin}
-                disabled={isGoogleLoading}
-              >
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10 rounded-xl font-bold"
+                  onClick={handleGoogleLogin}
+                  disabled={isGoogleLoading || isSubmitting || activeDemoLogin !== null}
+                >
                 {isGoogleLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
