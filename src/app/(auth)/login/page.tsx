@@ -174,38 +174,11 @@ export default function LoginPage() {
       return;
     }
 
-    try {
-      const response = await fetch(`${authBaseUrl}/api/auth/sign-in/social`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          provider: "google",
-          callbackURL: `${window.location.origin}/dashboard`,
-          errorCallbackURL: `${window.location.origin}/login`,
-        }),
-      });
-
-      const data = (await response.json()) as {
-        url?: string;
-        message?: string;
-      };
-
-      if (!response.ok || !data.url) {
-        throw new Error(data.message || "Failed to start Google login.");
-      }
-
-      window.location.assign(data.url);
-    } catch (error) {
-      setIsGoogleLoading(false);
-      setGlobalError(
-        error instanceof Error
-          ? error.message
-          : "Google login failed. Please try again.",
-      );
-    }
+    const callbackURL = encodeURIComponent(`${window.location.origin}/dashboard`);
+    const errorCallbackURL = encodeURIComponent(`${window.location.origin}/login`);
+    window.location.assign(
+      `${authBaseUrl}/auth/google/start?callbackURL=${callbackURL}&errorCallbackURL=${errorCallbackURL}`,
+    );
   };
 
   return (
