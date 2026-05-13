@@ -6,6 +6,7 @@ import {
   Users,
   Warehouse,
   ClipboardList,
+  MessageSquareText,
   BadgeDollarSign,
   CreditCard,
   Settings,
@@ -78,6 +79,12 @@ export const tenantNavigation: NavItem[] = [
     href: "/sales",
     roles: ["ORG_SUPER_ADMIN", "ORG_ADMIN", "SHOP_ADMIN", "STAFF"],
     icon: BadgeDollarSign,
+  },
+  {
+    label: "Customer Leads",
+    href: "/leads",
+    roles: ["ORG_SUPER_ADMIN", "ORG_ADMIN", "SHOP_ADMIN"],
+    icon: MessageSquareText,
   },
   {
     label: "Billing",

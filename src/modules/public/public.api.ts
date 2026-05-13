@@ -31,3 +31,54 @@ export async function subscribeToNewsletter(email: string) {
   const res = await apiClient.post("/newsletter", { email });
   return res.data;
 }
+
+export async function getContactMessages(params?: {
+  page?: number;
+  limit?: number;
+  searchTerm?: string;
+  status?: string;
+}) {
+  const res = await apiClient.get("/contact-messages", { params });
+  return res.data;
+}
+
+export async function updateContactMessageStatus(id: string, status: string) {
+  const res = await apiClient.patch(`/contact-messages/${id}/status`, {
+    status,
+  });
+  return res.data;
+}
+
+export async function getDemoRequests(params?: {
+  page?: number;
+  limit?: number;
+  searchTerm?: string;
+  status?: string;
+}) {
+  const res = await apiClient.get("/demo-requests", { params });
+  return res.data;
+}
+
+export async function updateDemoRequestStatus(id: string, status: string) {
+  const res = await apiClient.patch(`/demo-requests/${id}/status`, {
+    status,
+  });
+  return res.data;
+}
+
+export async function getSupportTickets(params?: {
+  page?: number;
+  limit?: number;
+  searchTerm?: string;
+  status?: string;
+}) {
+  const res = await apiClient.get("/support-tickets", { params });
+  return res.data;
+}
+
+export async function updateSupportTicketStatus(id: string, status: string) {
+  const res = await apiClient.patch(`/support-tickets/${id}/status`, {
+    status,
+  });
+  return res.data;
+}
